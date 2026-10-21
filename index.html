@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroFleet | End-to-End Frequent Flyer Portal</title>
+  <meta name="description" content="Digital frequent flyer management portal for airline floor staff. Ticket ENG-163087.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#mainContent" class="skip-link">Skip to main content</a>
+
+  <div class="app-layout">
+    <header class="portal-header" role="banner">
+      <div class="header-container">
+        <div class="brand-group">
+          <div class="brand-badge" aria-hidden="true">
+            <i class="fa-solid fa-plane-up"></i>
+          </div>
+          <div>
+            <h1 class="brand-title">AeroFleet Portal</h1>
+            <p class="brand-subtitle">End-to-End Frequent Flyer Operations &bull; Staff Desk ENG-163087</p>
+          </div>
+        </div>
+
+        <div class="header-controls">
+          <div class="connectivity-status" role="status" aria-live="polite">
+            <span class="status-indicator online" id="networkDot" aria-hidden="true"></span>
+            <span id="networkText" class="status-label">Online (Fast)</span>
+            <button type="button" id="toggleNetworkBtn" class="btn-network-toggle" title="Toggle Network Simulator (Online / Slow 3G / Offline)" aria-label="Toggle network simulation mode">
+              <i class="fa-solid fa-wifi" aria-hidden="true"></i> Simulate Network
+            </button>
+          </div>
+
+          <button type="button" id="openNewMemberModalBtn" class="btn-primary" aria-label="Register new frequent flyer member">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i> New Member
+          </button>
+        </div>
+      </div>
+
+      <div class="quick-metrics-bar" aria-label="Portal summary metrics">
+        <div class="metric-item">
+          <span class="metric-label">Registered Members</span>
+          <strong id="metricTotalMembers" class="metric-val">0</strong>
+        </div>
+        <div class="metric-divider" aria-hidden="true"></div>
+        <div class="metric-item">
+          <span class="metric-label">Tier Upgrades (Q4)</span>
+          <strong id="metricTierUpgrades" class="metric-val">0</strong>
+        </div>
+        <div class="metric-divider" aria-hidden="true"></div>
+        <div class="metric-item">
+          <span class="metric-label">Flights Logged</span>
+          <strong id="metricFlightsLogged" class="metric-val">0</strong>
+        </div>
+        <div class="metric-divider" aria-hidden="true"></div>
+        <div class="metric-item">
+          <span class="metric-label">Total Miles Issued</span>
+          <strong id="metricTotalMiles" class="metric-val">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <main id="mainContent" class="portal-main" role="main">
+      <div class="portal-grid">
+        <aside class="sidebar-section" aria-label="Member search and directory">
+          <div class="panel-card search-panel">
+            <div class="panel-header">
+              <h2 class="panel-title"><i class="fa-solid fa-address-book" aria-hidden="true"></i> Member Directory</h2>
+              <span id="memberCountBadge" class="badge-count" aria-label="Total matching members">0</span>
+            </div>
+
+            <div class="search-box">
+              <label for="memberSearchInput" class="visually-hidden">Search member by ID, name or email</label>
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                <input 
+                  type="search" 
+                  id="memberSearchInput" 
+                  class="search-field" 
+                  placeholder="Search by ID, name, email..." 
+                  autocomplete="off"
+                  aria-controls="membersListContainer"
+                >
+                <button type="button" id="clearSearchBtn" class="btn-clear hidden" aria-label="Clear search input">
+                  <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="filter-pills" role="radiogroup" aria-label="Filter directory by membership tier">
+              <button type="button" class="tier-pill active" data-tier="ALL" role="radio" aria-checked="true">All</button>
+              <button type="button" class="tier-pill" data-tier="Platinum" role="radio" aria-checked="false">Platinum</button>
+              <button type="button" class="tier-pill" data-tier="Gold" role="radio" aria-checked="false">Gold</button>
+              <button type="button" class="tier-pill" data-tier="Silver" role="radio" aria-checked="false">Silver</button>
+              <button type="button" class="tier-pill" data-tier="Bronze" role="radio" aria-checked="false">Bronze</button>
+            </div>
+
+            <div id="sidebarLoading" class="async-loader-box hidden" role="status" aria-live="polite">
+              <div class="spin-circle" aria-hidden="true"></div>
+              <p>Syncing directory over connection...</p>
+            </div>
+
+            <div id="membersListContainer" class="members-list" role="region" aria-live="polite">
+            </div>
+
+            <div id="sidebarEmptyState" class="empty-state-card hidden" role="alert">
+              <div class="empty-state-icon" aria-hidden="true"><i class="fa-solid fa-users-slash"></i></div>
+              <h3>No Members Found</h3>
+              <p id="emptySearchDesc">No frequent flyer records match your search or filter criteria.</p>
+              <button type="button" id="resetFiltersBtn" class="btn-secondary">Reset Search Filters</button>
+            </div>
+          </div>
+        </aside>
+
+        <section class="dashboard-section" aria-label="Member details and operations">
+          <div id="noMemberSelectedView" class="empty-state-card splash-empty">
+            <div class="empty-state-icon" aria-hidden="true"><i class="fa-solid fa-passport"></i></div>
+            <h2>No Frequent Flyer Selected</h2>
+            <p>Select any member from the directory on the left or click <strong>New Member</strong> to register a new traveler account.</p>
+          </div>
+
+          <div id="memberDashboardView" class="member-detail-container hidden">
+            <article class="panel-card member-summary-card">
+              <div class="summary-top">
+                <div class="member-identity">
+                  <div class="avatar-tier-wrap" id="tierAvatarWrap">
+                    <span id="tierInitial">R</span>
+                  </div>
+                  <div>
+                    <div class="name-status-row">
+                      <h2 id="viewMemberName" class="member-headline">Rahul Sharma</h2>
+                      <span id="viewMemberStatus" class="status-pill active-pill">Active</span>
+                    </div>
+                    <div class="sub-identity-row">
+                      <span class="mono-id" id="viewMemberId">FF-10492</span>
+                      <span class="sep-dot" aria-hidden="true">&bull;</span>
+                      <span id="viewMemberEmail">rahul.sharma@example.com</span>
+                      <span class="sep-dot" aria-hidden="true">&bull;</span>
+                      <span class="join-date" id="viewMemberJoined">Member Since: Jan 2024</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tier-badge-container">
+                  <span id="viewMemberTierBadge" class="tier-badge tier-gold">
+                    <i class="fa-solid fa-award" aria-hidden="true"></i> <span id="viewMemberTierName">Gold</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="miles-kpi-grid">
+                <div class="kpi-box primary-kpi">
+                  <span class="kpi-title"><i class="fa-solid fa-wallet" aria-hidden="true"></i> Redeemable Balance</span>
+                  <div class="kpi-number-wrap">
+                    <span id="viewMilesBalance" class="kpi-number">68,500</span>
+                    <span class="kpi-unit">Miles</span>
+                  </div>
+                  <span class="kpi-helper">Available for reward flights and upgrades</span>
+                </div>
+
+                <div class="kpi-box">
+                  <span class="kpi-title"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Qualifying Tier Miles</span>
+                  <div class="kpi-number-wrap">
+                    <span id="viewQualifyingMiles" class="kpi-number">52,000</span>
+                    <span class="kpi-unit">Q-Miles</span>
+                  </div>
+                  <div class="progress-bar-wrap" role="progressbar" id="tierProgressBar" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100" aria-label="Progress to next tier">
+                    <div id="tierProgressFill" class="progress-fill" style="width: 52%;"></div>
+                  </div>
+                  <span id="viewTierRequirementHint" class="kpi-helper">48,000 Q-Miles to Platinum tier</span>
+                </div>
+
+                <div class="kpi-box">
+                  <span class="kpi-title"><i class="fa-solid fa-route" aria-hidden="true"></i> Flight Segments</span>
+                  <div class="kpi-number-wrap">
+                    <span id="viewSegmentsCount" class="kpi-number">18</span>
+                    <span class="kpi-unit">Flights</span>
+                  </div>
+                  <span class="kpi-helper">Lifetime flown flight segments</span>
+                </div>
+              </div>
+            </article>
+
+            <div class="portal-tabs" role="tablist" aria-label="Frequent flyer operations tabs">
+              <button type="button" id="tabFlightsBtn" class="tab-btn active" role="tab" aria-selected="true" aria-controls="flightsTabPanel">
+                <i class="fa-solid fa-plane-departure" aria-hidden="true"></i> Flight Segments (<span id="tabFlightCount">0</span>)
+              </button>
+              <button type="button" id="tabRedeemBtn" class="tab-btn" role="tab" aria-selected="false" aria-controls="redeemTabPanel">
+                <i class="fa-solid fa-gift" aria-hidden="true"></i> Miles Redemption Desk
+              </button>
+              <button type="button" id="tabHistoryBtn" class="tab-btn" role="tab" aria-selected="false" aria-controls="historyTabPanel">
+                <i class="fa-solid fa-receipt" aria-hidden="true"></i> Redemptions Log (<span id="tabRedemptionCount">0</span>)
+              </button>
+            </div>
+
+            <div id="flightsTabPanel" class="tab-content-panel" role="tabpanel" aria-labelledby="tabFlightsBtn">
+              <div class="panel-card inner-panel">
+                <div class="section-action-header">
+                  <div>
+                    <h3 class="section-title">Logged Flight Segments</h3>
+                    <p class="section-subtitle">Real-time mileage credited from flight manifests</p>
+                  </div>
+                  <button type="button" id="openLogFlightModalBtn" class="btn-primary" aria-label="Log new flight segment for this member">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i> Log Flight
+                  </button>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="data-table" aria-label="Member flight history table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Flight #</th>
+                        <th scope="col">Route</th>
+                        <th scope="col">Distance</th>
+                        <th scope="col">Cabin Class</th>
+                        <th scope="col">Miles Earned</th>
+                        <th scope="col">Logged Date</th>
+                      </tr>
+                    </thead>
+                    <tbody id="flightsTableBody">
+                    </tbody>
+                  </table>
+                </div>
+
+                <div id="flightsEmptyState" class="empty-state-card inner-empty hidden">
+                  <div class="empty-state-icon" aria-hidden="true"><i class="fa-solid fa-plane-slash"></i></div>
+                  <h4>No Flight Segments Logged</h4>
+                  <p>This member does not have any recorded flight segments. Click "Log Flight" above to add their latest flight activity.</p>
+                </div>
+              </div>
+            </div>
+
+            <div id="redeemTabPanel" class="tab-content-panel hidden" role="tabpanel" aria-labelledby="tabRedeemBtn">
+              <div class="panel-card inner-panel">
+                <div class="section-action-header">
+                  <div>
+                    <h3 class="section-title">Rewards Catalog & Instant Redemption</h3>
+                    <p class="section-subtitle">Floor staff redemption desk for reward flights, upgrades and lounges</p>
+                  </div>
+                  <div class="current-spend-pill">
+                    <span>Available:</span> <strong id="redeemAvailableMiles">68,500</strong> <span>Miles</span>
+                  </div>
+                </div>
+
+                <div class="catalog-grid" id="rewardCatalogGrid">
+                </div>
+              </div>
+            </div>
+
+            <div id="historyTabPanel" class="tab-content-panel hidden" role="tabpanel" aria-labelledby="tabHistoryBtn">
+              <div class="panel-card inner-panel">
+                <div class="section-action-header">
+                  <div>
+                    <h3 class="section-title">Voucher & Redemption History</h3>
+                    <p class="section-subtitle">Audit log of issued reward vouchers and miles spent</p>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="data-table" aria-label="Member redemptions history table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Voucher Code</th>
+                        <th scope="col">Reward Description</th>
+                        <th scope="col">Miles Debited</th>
+                        <th scope="col">Issued Timestamp</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="redemptionsTableBody">
+                    </tbody>
+                  </table>
+                </div>
+
+                <div id="redemptionsEmptyState" class="empty-state-card inner-empty hidden">
+                  <div class="empty-state-icon" aria-hidden="true"><i class="fa-solid fa-ticket"></i></div>
+                  <h4>No Miles Redeemed Yet</h4>
+                  <p>This frequent flyer has not made any redemptions. Browse the Rewards Catalog to redeem miles.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="portal-footer" role="contentinfo">
+      <div class="footer-container">
+        <p>End-to-End Frequent Flyer Portal &bull; Enterprise Staff Operations Desk (Ticket ENG-163087)</p>
+        <p class="footer-meta">Designed for 100% Accessibility & Offline Resilience &bull; Made by Harsh Vardhan</p>
+      </div>
+    </footer>
+  </div>
+
+  <div id="modalNewMember" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalNewMemberTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalNewMemberTitle" class="modal-title"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Register New Member</h3>
+        <button type="button" class="btn-close-modal" id="closeNewMemberModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="newMemberForm" novalidate>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="newMemberName">Full Legal Name <span class="req">*</span></label>
+            <input type="text" id="newMemberName" class="form-control" placeholder="e.g. Aditi Rao" required autocomplete="name">
+            <span class="field-error" id="errorNewMemberName"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="newMemberEmail">Email Address <span class="req">*</span></label>
+            <input type="email" id="newMemberEmail" class="form-control" placeholder="e.g. aditi.rao@example.com" required autocomplete="email">
+            <span class="field-error" id="errorNewMemberEmail"></span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="newMemberMiles">Initial Welcome Miles</label>
+              <input type="number" id="newMemberMiles" class="form-control" value="5000" min="0" step="500">
+              <span class="field-error" id="errorNewMemberMiles"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="newMemberTier">Starting Tier</label>
+              <select id="newMemberTier" class="form-control">
+                <option value="Bronze" selected>Bronze</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Platinum">Platinum</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelNewMemberBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveNewMemberBtn">Create Member Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalLogFlight" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalLogFlightTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalLogFlightTitle" class="modal-title"><i class="fa-solid fa-plane" aria-hidden="true"></i> Log Flight Segment</h3>
+        <button type="button" class="btn-close-modal" id="closeLogFlightModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="logFlightForm" novalidate>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="flightNumberInput">Flight Number <span class="req">*</span></label>
+            <input type="text" id="flightNumberInput" class="form-control uppercase" placeholder="e.g. AI-101" required>
+            <span class="field-error" id="errorFlightNumber"></span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="flightOriginInput">Origin (IATA 3-letter) <span class="req">*</span></label>
+              <input type="text" id="flightOriginInput" class="form-control uppercase" maxlength="3" placeholder="DEL" required>
+              <span class="field-error" id="errorFlightOrigin"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="flightDestInput">Destination (IATA 3-letter) <span class="req">*</span></label>
+              <input type="text" id="flightDestInput" class="form-control uppercase" maxlength="3" placeholder="JFK" required>
+              <span class="field-error" id="errorFlightDest"></span>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="flightDistanceInput">Distance (Nautical Miles) <span class="req">*</span></label>
+              <input type="number" id="flightDistanceInput" class="form-control" placeholder="e.g. 7300" min="50" step="50" required>
+              <span class="field-error" id="errorFlightDistance"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="flightClassInput">Cabin Class <span class="req">*</span></label>
+              <select id="flightClassInput" class="form-control">
+                <option value="Economy">Economy (1.0x)</option>
+                <option value="Premium Economy">Premium Economy (1.25x)</option>
+                <option value="Business" selected>Business (1.5x)</option>
+                <option value="First">First (2.0x)</option>
+              </select>
+              <span class="field-error" id="errorFlightClass"></span>
+            </div>
+          </div>
+
+          <div class="miles-calc-preview">
+            <span>Estimated Miles to Credit:</span>
+            <strong id="previewCalculatedMiles">10,950</strong> <span>Miles</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelLogFlightBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveFlightBtn">Credit Flight & Miles</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toastNotification" class="toast-box hidden" role="alert" aria-live="assertive">
+    <i id="toastIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
+    <span id="toastMessage">Action completed successfully.</span>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

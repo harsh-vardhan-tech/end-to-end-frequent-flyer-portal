@@ -1,0 +1,18 @@
+{
+  "name": "end-to-end-frequent-flyer-portal",
+  "version": "1.0.0",
+  "description": "Enterprise Frequent Flyer Portal for Airline Floor Staff - Ticket ENG-163087",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}
