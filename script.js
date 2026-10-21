@@ -99,45 +99,65 @@ const DEFAULT_MEMBERS = [
     tier: "Platinum",
     milesBalance: 145000,
     qualifyingMiles: 112000,
-    segments: 36,
+    segments: 32,
     status: "Active",
-    joinedDate: "18 Nov 2022",
+    joinedDate: "20 Nov 2023",
     flights: [
       {
-        id: "SEG-619283",
-        flightNumber: "AI-187",
+        id: "SEG-512903",
+        flightNumber: "AI-127",
         origin: "DEL",
-        destination: "YYZ",
-        distance: 7250,
+        destination: "ORD",
+        distance: 7480,
         cabinClass: "First",
-        earnedMiles: 14500,
-        loggedAt: "2026-10-15T09:40:00Z"
+        earnedMiles: 14960,
+        loggedAt: "2026-10-15T11:00:00Z"
+      }
+    ],
+    redemptions: [
+      {
+        id: "RED-1728000000000",
+        rewardId: "REWARD_FLIGHT_DXB",
+        rewardName: "Reward Seat: DEL to DXB (Economy)",
+        cost: 25000,
+        voucherCode: "VCH-DX1044",
+        redeemedAt: "2026-09-28T09:10:00Z"
+      }
+    ]
+  },
+  {
+    id: "FF-50221",
+    name: "Kabir Mehta",
+    email: "kabir.mehta@traveler.org",
+    tier: "Bronze",
+    milesBalance: 1200,
+    qualifyingMiles: 1200,
+    segments: 1,
+    status: "Active",
+    joinedDate: "01 Oct 2026",
+    flights: [
+      {
+        id: "SEG-341908",
+        flightNumber: "AI-805",
+        origin: "BOM",
+        destination: "BLR",
+        distance: 520,
+        cabinClass: "Economy",
+        earnedMiles: 520,
+        loggedAt: "2026-10-05T07:15:00Z"
       }
     ],
     redemptions: []
-  },
-  {
-    id: "FF-50412",
-    name: "Rohit Verma",
-    email: "rohit.verma@domain.in",
-    tier: "Silver",
-    milesBalance: 41500,
-    qualifyingMiles: 38000,
-    segments: 12,
-    status: "Active",
-    joinedDate: "27 Feb 2025",
-    flights: [],
-    redemptions: []
   }
 ];
+
+const STORAGE_KEY = "aerofleet_frequent_flyer_members_v1";
 
 let members = [];
 let selectedMemberId = null;
 let activeTierFilter = "ALL";
 let networkMode = "online";
 let activeModalTrigger = null;
-
-const STORAGE_KEY = "aerofleet_frequent_flyer_members_v1";
 
 function loadState() {
   try {
@@ -165,6 +185,8 @@ function saveState() {
 const networkDot = document.getElementById("networkDot");
 const networkText = document.getElementById("networkText");
 const toggleNetworkBtn = document.getElementById("toggleNetworkBtn");
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+const themeToggleIcon = document.getElementById("themeToggleIcon");
 
 const metricTotalMembers = document.getElementById("metricTotalMembers");
 const metricTierUpgrades = document.getElementById("metricTierUpgrades");
@@ -246,16 +268,44 @@ let toastTimer = null;
 function showToast(message, type = "success") {
   if (toastTimer) clearTimeout(toastTimer);
   toastMessage.textContent = message;
-  toastNotification.className = "toast-box toast-" + type;
+  toastNotification.className = "toast toast-" + type;
 
-  if (type === "success") toastIcon.className = "fa-solid fa-circle-check";
-  else if (type === "error") toastIcon.className = "fa-solid fa-triangle-exclamation";
-  else toastIcon.className = "fa-solid fa-circle-info";
+  if (type === "success") {
+    toastIcon.className = "fa-solid fa-circle-check";
+  } else if (type === "error") {
+    toastIcon.className = "fa-solid fa-triangle-exclamation";
+  } else {
+    toastIcon.className = "fa-solid fa-circle-info";
+  }
 
   toastNotification.classList.remove("hidden");
   toastTimer = setTimeout(() => {
     toastNotification.classList.add("hidden");
   }, 3500);
+}
+
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.setAttribute("data-theme", "dark");
+    if (themeToggleIcon) themeToggleIcon.className = "fa-solid fa-sun";
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+    if (themeToggleIcon) themeToggleIcon.className = "fa-solid fa-moon";
+  }
+  localStorage.setItem("aerofleet_theme", theme);
+}
+
+const savedTheme = localStorage.getItem("aerofleet_theme") || "light";
+applyTheme(savedTheme);
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const nextTheme = isDark ? "light" : "dark";
+    applyTheme(nextTheme);
+    logAnalytics("Theme Toggled", { theme: nextTheme });
+    showToast(`Switched to ${nextTheme === "dark" ? "Dark" : "Light"} theme`, "info");
+  });
 }
 
 function updateGlobalMetrics() {
@@ -530,7 +580,7 @@ function renderRedemptionsLog(member) {
   list.forEach((r) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="table-mono" style="color: var(--brand-primary);">${r.voucherCode}</td>
+      <td class="table-mono">${r.voucherCode}</td>
       <td><strong>${r.rewardName}</strong></td>
       <td><span class="miles-debited-badge">-${formatNumber(r.cost)}</span></td>
       <td>${formatDate(r.redeemedAt)}</td>
@@ -570,6 +620,31 @@ function switchTab(target) {
 tabFlightsBtn.addEventListener("click", () => switchTab("flights"));
 tabRedeemBtn.addEventListener("click", () => switchTab("redeem"));
 tabHistoryBtn.addEventListener("click", () => switchTab("history"));
+
+const navTabs = document.querySelectorAll(".nav-tab");
+navTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const navTarget = tab.getAttribute("data-nav");
+    navTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    if (navTarget === "dashboard") {
+      if (selectedMemberId) {
+        selectMember(selectedMemberId);
+        switchTab("flights");
+      }
+    } else if (navTarget === "members") {
+      memberSearchInput.focus();
+      const sidebar = document.getElementById("sidebarContainer");
+      if (sidebar) sidebar.scrollIntoView({ behavior: "smooth" });
+    } else if (navTarget === "flights") {
+      switchTab("flights");
+    } else if (navTarget === "rewards") {
+      switchTab("redeem");
+    }
+    logAnalytics("Navigation Clicked", { section: navTarget });
+  });
+});
 
 function openModal(modal, triggerBtn) {
   activeModalTrigger = triggerBtn;
@@ -614,11 +689,11 @@ closeLogFlightModalBtn.addEventListener("click", () => closeModal(modalLogFlight
 cancelLogFlightBtn.addEventListener("click", () => closeModal(modalLogFlight));
 
 function clearFieldErrors(form) {
-  form.querySelectorAll(".form-control").forEach((input) => {
+  form.querySelectorAll(".form-input").forEach((input) => {
     input.classList.remove("is-invalid");
     input.removeAttribute("aria-invalid");
   });
-  form.querySelectorAll(".field-error").forEach((span) => {
+  form.querySelectorAll(".field-err").forEach((span) => {
     span.textContent = "";
   });
 }
@@ -779,18 +854,18 @@ tierPillButtons.forEach((btn) => {
 toggleNetworkBtn.addEventListener("click", () => {
   if (networkMode === "online") {
     networkMode = "slow";
-    networkDot.className = "status-indicator slow";
-    networkText.textContent = "Slow 3G (Simulated)";
-    showToast("Simulating Slow 3G network latency (1.2s spinner on actions)", "warning");
+    networkDot.className = "net-dot slow";
+    networkText.textContent = "Slow 3G";
+    showToast("Simulating Slow 3G network latency (1.2s delay on operations)", "warning");
   } else if (networkMode === "slow") {
     networkMode = "offline";
-    networkDot.className = "status-indicator offline";
-    networkText.textContent = "Offline (Local Queue)";
+    networkDot.className = "net-dot offline";
+    networkText.textContent = "Offline";
     showToast("Simulating Offline spotty connection. Remote sync blocked.", "error");
   } else {
     networkMode = "online";
-    networkDot.className = "status-indicator online";
-    networkText.textContent = "Online (Fast)";
+    networkDot.className = "net-dot online";
+    networkText.textContent = "Online";
     showToast("Network restored to high-speed Online mode.", "success");
   }
   logAnalytics("Network Simulator Toggled", { mode: networkMode });

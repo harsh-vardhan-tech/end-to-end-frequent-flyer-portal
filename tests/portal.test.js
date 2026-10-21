@@ -91,7 +91,7 @@ describe("End-to-End Frequent Flyer Portal - Core Test Suite (TDD)", () => {
     });
 
     it("should log a flight segment and update member miles and tier", () => {
-      const member = sampleMembers[1]; // Silver, 29000 qualifying miles
+      const member = sampleMembers[1];
       const flightData = {
         flightNumber: "AI-101",
         origin: "DEL",
@@ -103,34 +103,31 @@ describe("End-to-End Frequent Flyer Portal - Core Test Suite (TDD)", () => {
       const result = logFlightSegment(member, flightData);
       expect(result.success).toBe(true);
       expect(member.flights.length).toBe(1);
-      // 7300 * 1.5 = 10950 earned miles
       expect(member.milesBalance).toBe(34200 + 10950);
       expect(member.qualifyingMiles).toBe(29000 + 10950);
-      // 29000 + 10950 = 39950 (Still Silver)
       expect(member.tier).toBe("Silver");
     });
 
     it("should upgrade tier when qualifying miles cross threshold", () => {
-      const member = sampleMembers[1]; // 29000 qualifying miles
+      const member = sampleMembers[1];
       const flightData = {
         flightNumber: "AI-144",
         origin: "BOM",
         destination: "EWR",
         distance: 15000,
-        cabinClass: "Business" // 15000 * 1.5 = 22500
+        cabinClass: "Business"
       };
 
       const result = logFlightSegment(member, flightData);
       expect(result.success).toBe(true);
-      // 29000 + 22500 = 51500 -> Upgrades to Gold!
       expect(member.qualifyingMiles).toBe(51500);
       expect(member.tier).toBe("Gold");
       expect(result.tierUpgraded).toBe(true);
     });
 
     it("should successfully redeem miles if balance is sufficient", () => {
-      const member = sampleMembers[0]; // 68500 miles
-      const reward = PORTAL_REDEEM_CATALOG.find((r) => r.id === "REWARD_UPGRADE_BIZ"); // 15000 miles
+      const member = sampleMembers[0];
+      const reward = PORTAL_REDEEM_CATALOG.find((r) => r.id === "REWARD_UPGRADE_BIZ");
 
       const redemption = redeemMiles(member, reward);
       expect(redemption.success).toBe(true);
@@ -146,13 +143,13 @@ describe("End-to-End Frequent Flyer Portal - Core Test Suite (TDD)", () => {
     });
 
     it("should reject redemption when miles balance is insufficient", () => {
-      const member = sampleMembers[2]; // 8400 miles
-      const reward = PORTAL_REDEEM_CATALOG.find((r) => r.id === "REWARD_FLIGHT_DXB"); // 25000 miles
+      const member = sampleMembers[2];
+      const reward = PORTAL_REDEEM_CATALOG.find((r) => r.id === "REWARD_FLIGHT_DXB");
 
       const redemption = redeemMiles(member, reward);
       expect(redemption.success).toBe(false);
       expect(redemption.error).toMatch(/insufficient miles/i);
-      expect(member.milesBalance).toBe(8400); // unchanged
+      expect(member.milesBalance).toBe(8400);
     });
 
     it("should validate and reject invalid member input fields", () => {
@@ -172,7 +169,7 @@ describe("End-to-End Frequent Flyer Portal - Core Test Suite (TDD)", () => {
     it("should validate and reject invalid flight segment inputs", () => {
       const invalidFlight = {
         flightNumber: "",
-        origin: "DELHI", // must be 3 letters
+        origin: "DELHI",
         destination: "",
         distance: 0,
         cabinClass: "InvalidClass"

@@ -15,8 +15,8 @@ This is a digital frequent flyer operations desk built for airline floor staff (
 ---
 
 ## Technologies Used
-- **HTML5:** Semantic architecture, accessible landmarks, WCAG 2.1 compliance.
-- **CSS3:** Corporate monochromatic design system (obsidian/slate palette with 16px/32px step padding).
+- **HTML5:** Semantic architecture, accessible landmarks, WCAG 2.1 AA compliance.
+- **CSS3:** Corporate monochromatic design system (light/dark mode support with 16px/32px step padding).
 - **Vanilla JavaScript (ES Modules):** Clean modular controller, state management, and `localStorage` persistence.
 - **Vitest & JSDOM:** Test-Driven Development (TDD) test suite.
 - **Vite:** Modern development server and production build bundler.
@@ -26,6 +26,8 @@ This is a digital frequent flyer operations desk built for airline floor staff (
 ## Core Features & Requirements
 
 ### 1. Agile User Stories (Happy Path)
+- **Top Navigation Bar:** Immediate access to Dashboard, Members directory, Flight manifests, and Rewards catalog.
+- **White / Black Theme Toggle:** Instant switch between clean White mode and sleek Black dark mode with persistent user preference.
 - **Instant Member Lookup:** Fast real-time search by Member ID (e.g. `FF-10492`), Name, or Email with debounce.
 - **Tier Progression Engine:** Real-time calculation of membership tier (`Bronze`, `Silver`, `Gold`, `Platinum`) based on qualifying flight miles with a visual progress bar.
 - **Flight Mileage Crediting:** Calculate base distance and cabin class multipliers (Economy 1.0x, Premium Economy 1.25x, Business 1.5x, First 2.0x), automatically crediting miles and triggering tier upgrade notifications.
