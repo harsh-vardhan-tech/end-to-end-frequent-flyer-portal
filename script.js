@@ -156,7 +156,6 @@ const STORAGE_KEY = "aerofleet_frequent_flyer_members_v1";
 let members = [];
 let selectedMemberId = null;
 let activeTierFilter = "ALL";
-let networkMode = "online";
 let activeModalTrigger = null;
 
 function loadState() {
@@ -182,9 +181,6 @@ function saveState() {
   updateGlobalMetrics();
 }
 
-const networkDot = document.getElementById("networkDot");
-const networkText = document.getElementById("networkText");
-const toggleNetworkBtn = document.getElementById("toggleNetworkBtn");
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeToggleIcon = document.getElementById("themeToggleIcon");
 const mobileMenuBtn = document.getElementById("mobileMenuBtn");
@@ -306,7 +302,6 @@ if (themeToggleBtn) {
     const nextTheme = isDark ? "light" : "dark";
     applyTheme(nextTheme);
     logAnalytics("Theme Toggled", { theme: nextTheme });
-    showToast(`Switched to ${nextTheme === "dark" ? "Dark" : "Light"} theme`, "info");
   });
 }
 
@@ -337,10 +332,10 @@ function updateGlobalMetrics() {
   metricTotalMiles.textContent = totalMiles.toLocaleString();
 }
 
-async function simulateNetworkDelay() {
-  if (networkMode === "slow") {
+async function simulateNetworkDelay(ms = 300) {
+  if (sidebarLoading) {
     sidebarLoading.classList.remove("hidden");
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, ms));
     sidebarLoading.classList.add("hidden");
   }
 }
@@ -414,7 +409,7 @@ function renderMembersList() {
 }
 
 async function selectMember(id) {
-  await simulateNetworkDelay();
+  await simulateNetworkDelay(250);
   selectedMemberId = id;
   const member = members.find((m) => m.id === id);
 
@@ -560,12 +555,12 @@ function renderRewardsCatalog(member) {
 }
 
 async function handleRedeemReward(member, reward) {
-  if (networkMode === "offline") {
+  if (!navigator.onLine) {
     showToast("Network Offline: Redemptions cannot be processed in offline mode.", "error");
     return;
   }
 
-  await simulateNetworkDelay();
+  await simulateNetworkDelay(300);
 
   const res = redeemMiles(member, reward);
   if (!res.success) {
@@ -787,7 +782,7 @@ newMemberForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  await simulateNetworkDelay();
+  await simulateNetworkDelay(300);
 
   const newId = "FF-" + Math.floor(10000 + Math.random() * 90000);
   const cleanName = sanitizeInput(rawData.name.trim());
@@ -854,7 +849,7 @@ logFlightForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  await simulateNetworkDelay();
+  await simulateNetworkDelay(300);
 
   const res = logFlightSegment(currentMember, rawFlight);
   saveState();
@@ -910,24 +905,12 @@ tierPillButtons.forEach((btn) => {
   });
 });
 
-toggleNetworkBtn.addEventListener("click", () => {
-  if (networkMode === "online") {
-    networkMode = "slow";
-    networkDot.className = "net-dot slow";
-    networkText.textContent = "Slow 3G";
-    showToast("Simulating Slow 3G network latency (1.2s delay on operations)", "warning");
-  } else if (networkMode === "slow") {
-    networkMode = "offline";
-    networkDot.className = "net-dot offline";
-    networkText.textContent = "Offline";
-    showToast("Simulating Offline spotty connection. Remote sync blocked.", "error");
-  } else {
-    networkMode = "online";
-    networkDot.className = "net-dot online";
-    networkText.textContent = "Online";
-    showToast("Network restored to high-speed Online mode.", "success");
-  }
-  logAnalytics("Network Simulator Toggled", { mode: networkMode });
+window.addEventListener("offline", () => {
+  showToast("Network Offline: Operating in offline mode.", "error");
+});
+
+window.addEventListener("online", () => {
+  showToast("Network Connected: Back online.", "success");
 });
 
 function init() {
