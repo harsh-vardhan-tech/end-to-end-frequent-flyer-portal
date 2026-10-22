@@ -1295,14 +1295,13 @@ body.modal-open {
 .bottom-bar {
   background: var(--bg-card);
   border-top: 1px solid var(--border-color);
-  padding: 12px 32px;
+  padding: 16px 32px;
   font-size: 12px;
   color: var(--text-muted);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  text-align: center;
 }
 
 @media (max-width: 1024px) {
