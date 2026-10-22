@@ -2,8 +2,8 @@
 
 A web application designed for airline floor staff and operations to manage passenger loyalty accounts, credit flight mileage, process tier upgrades, and issue redemption vouchers with offline resiliency.
 
-## Live Demo
-- [Live Portal](https://harsh-vardhan-tech.github.io/end-to-end-frequent-flyer-portal/)
+## Live Website
+- [Live Portal](https://end-to-end-frequent-flyer-portal.vercel.app/)
 
 ## Features
 - **Member Directory & Search:** Real-time lookup across Member ID, passenger name, and email with instant tier filtering (Platinum, Gold, Silver, Bronze).
