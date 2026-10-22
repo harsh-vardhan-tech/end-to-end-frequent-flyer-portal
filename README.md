@@ -11,6 +11,8 @@ This is a digital frequent flyer operations desk built for airline floor staff (
 - **Story Points:** 5
 - **Assigned To:** Harsh Vardhan [PDIT-INT-1260]
 - **Reporter:** Amit Sharma (Senior Staff Engineer / Module Lead)
+- **GitHub Repository:** [https://github.com/harsh-vardhan-tech/end-to-end-frequent-flyer-portal](https://github.com/harsh-vardhan-tech/end-to-end-frequent-flyer-portal)
+- **Live Deployment:** [https://harsh-vardhan-tech.github.io/end-to-end-frequent-flyer-portal/](https://harsh-vardhan-tech.github.io/end-to-end-frequent-flyer-portal/)
 
 ---
 
