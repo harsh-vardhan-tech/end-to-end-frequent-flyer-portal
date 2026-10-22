@@ -75,6 +75,10 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--bg-app);
@@ -83,6 +87,10 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 .skip-link {
@@ -146,6 +154,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  position: relative;
 }
 
 .nav-left {
@@ -157,6 +166,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  user-select: none;
 }
 
 .brand-icon {
@@ -233,6 +243,7 @@ body {
   border-radius: var(--r-sm);
   font-size: 12px;
   color: var(--text-muted);
+  user-select: none;
 }
 
 .net-dot {
@@ -241,6 +252,7 @@ body {
   border-radius: 50%;
   background: var(--green);
   display: inline-block;
+  transition: background-color 0.2s ease;
 }
 
 .net-dot.slow {
@@ -271,11 +283,15 @@ body {
   border-color: var(--border-dark);
 }
 
+.icon-btn:active {
+  transform: scale(0.95);
+}
+
 .btn-action {
   background: var(--primary-btn-bg);
   color: var(--primary-btn-text);
   border: 1px solid transparent;
-  padding: 6px 14px;
+  padding: 7px 14px;
   font-size: 13px;
   font-weight: 600;
   border-radius: var(--r-sm);
@@ -288,6 +304,10 @@ body {
 
 .btn-action:hover {
   background: var(--primary-btn-hover);
+}
+
+.btn-action:active {
+  transform: scale(0.97);
 }
 
 .btn-outline {
@@ -309,14 +329,27 @@ body {
   background: var(--bg-card-subtle);
 }
 
+.btn-outline:active {
+  transform: scale(0.97);
+}
+
 .mobile-menu-btn {
   display: none;
-  background: transparent;
-  border: none;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
   color: var(--text-main);
-  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
   cursor: pointer;
-  padding: 4px;
+  font-size: 15px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--bg-card-hover);
 }
 
 .stats-strip {
@@ -444,6 +477,7 @@ body {
   color: var(--text-light);
   font-size: 12px;
   cursor: pointer;
+  padding: 4px;
 }
 
 .clear-btn:hover {
@@ -471,6 +505,10 @@ body {
 .tier-pill:hover {
   border-color: var(--border-dark);
   color: var(--text-main);
+}
+
+.tier-pill:active {
+  transform: scale(0.95);
 }
 
 .tier-pill.active {
@@ -513,6 +551,14 @@ body {
   padding-right: 2px;
 }
 
+.member-list::-webkit-scrollbar {
+  width: 5px;
+}
+.member-list::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 4px;
+}
+
 .member-item-btn {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -531,6 +577,10 @@ body {
 .member-item-btn:hover {
   background: var(--bg-card-subtle);
   border-color: var(--border-dark);
+}
+
+.member-item-btn:active {
+  transform: scale(0.99);
 }
 
 .member-item-btn.selected {
@@ -688,6 +738,7 @@ body {
   justify-content: center;
   font-size: 18px;
   font-weight: 700;
+  user-select: none;
 }
 
 .name-row {
@@ -834,6 +885,10 @@ body {
 
 .tab:hover {
   color: var(--text-main);
+}
+
+.tab:active {
+  transform: scale(0.98);
 }
 
 .tab.active {
@@ -1046,6 +1101,10 @@ body {
   background: var(--primary-btn-hover);
 }
 
+.btn-redeem:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
 .btn-redeem:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -1057,12 +1116,13 @@ body {
 .modal-bg {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-box {
@@ -1072,6 +1132,18 @@ body {
   width: 100%;
   max-width: 480px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  animation: modalIn 0.15s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .modal-head {
@@ -1098,6 +1170,7 @@ body {
   font-size: 20px;
   cursor: pointer;
   line-height: 1;
+  padding: 4px;
 }
 
 .close-modal:hover {
@@ -1247,6 +1320,28 @@ body {
   }
   .nav-center {
     display: none;
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    flex-direction: column;
+    padding: 12px 16px;
+    gap: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 99;
+  }
+  .nav-center.mobile-open {
+    display: flex;
+  }
+  .nav-tab {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+  .mobile-menu-btn {
+    display: flex;
   }
   .stats-strip {
     gap: 20px;

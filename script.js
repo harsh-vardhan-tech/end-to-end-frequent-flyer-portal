@@ -187,6 +187,8 @@ const networkText = document.getElementById("networkText");
 const toggleNetworkBtn = document.getElementById("toggleNetworkBtn");
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeToggleIcon = document.getElementById("themeToggleIcon");
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const navCenter = document.querySelector(".nav-center");
 
 const metricTotalMembers = document.getElementById("metricTotalMembers");
 const metricTierUpgrades = document.getElementById("metricTierUpgrades");
@@ -308,6 +310,13 @@ if (themeToggleBtn) {
   });
 }
 
+if (mobileMenuBtn && navCenter) {
+  mobileMenuBtn.addEventListener("click", () => {
+    const isOpen = navCenter.classList.toggle("mobile-open");
+    mobileMenuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+}
+
 function updateGlobalMetrics() {
   const total = members.length;
   let flightsCount = 0;
@@ -395,6 +404,9 @@ function renderMembersList() {
 
     itemBtn.addEventListener("click", () => {
       selectMember(m.id);
+      if (window.innerWidth < 1024) {
+        memberDashboardView.scrollIntoView({ behavior: "smooth" });
+      }
     });
 
     membersListContainer.appendChild(itemBtn);
@@ -590,6 +602,12 @@ function renderRedemptionsLog(member) {
   });
 }
 
+function updateTopNavActive(activeNav) {
+  document.querySelectorAll(".nav-tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.getAttribute("data-nav") === activeNav);
+  });
+}
+
 function switchTab(target) {
   [tabFlightsBtn, tabRedeemBtn, tabHistoryBtn].forEach((btn) => {
     btn.classList.remove("active");
@@ -604,10 +622,12 @@ function switchTab(target) {
     tabFlightsBtn.classList.add("active");
     tabFlightsBtn.setAttribute("aria-selected", "true");
     flightsTabPanel.classList.remove("hidden");
+    updateTopNavActive("flights");
   } else if (target === "redeem") {
     tabRedeemBtn.classList.add("active");
     tabRedeemBtn.setAttribute("aria-selected", "true");
     redeemTabPanel.classList.remove("hidden");
+    updateTopNavActive("rewards");
   } else if (target === "history") {
     tabHistoryBtn.classList.add("active");
     tabHistoryBtn.setAttribute("aria-selected", "true");
@@ -625,22 +645,33 @@ const navTabs = document.querySelectorAll(".nav-tab");
 navTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     const navTarget = tab.getAttribute("data-nav");
-    navTabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
+    updateTopNavActive(navTarget);
+
+    if (navCenter && navCenter.classList.contains("mobile-open")) {
+      navCenter.classList.remove("mobile-open");
+      if (mobileMenuBtn) mobileMenuBtn.setAttribute("aria-expanded", "false");
+    }
 
     if (navTarget === "dashboard") {
       if (selectedMemberId) {
         selectMember(selectedMemberId);
         switchTab("flights");
       }
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (navTarget === "members") {
       memberSearchInput.focus();
       const sidebar = document.getElementById("sidebarContainer");
       if (sidebar) sidebar.scrollIntoView({ behavior: "smooth" });
     } else if (navTarget === "flights") {
       switchTab("flights");
+      if (window.innerWidth < 1024) {
+        memberDashboardView.scrollIntoView({ behavior: "smooth" });
+      }
     } else if (navTarget === "rewards") {
       switchTab("redeem");
+      if (window.innerWidth < 1024) {
+        memberDashboardView.scrollIntoView({ behavior: "smooth" });
+      }
     }
     logAnalytics("Navigation Clicked", { section: navTarget });
   });
@@ -648,6 +679,7 @@ navTabs.forEach((tab) => {
 
 function openModal(modal, triggerBtn) {
   activeModalTrigger = triggerBtn;
+  document.body.classList.add("modal-open");
   modal.classList.remove("hidden");
   const firstInput = modal.querySelector("input, select, button");
   if (firstInput) firstInput.focus();
@@ -655,11 +687,20 @@ function openModal(modal, triggerBtn) {
 
 function closeModal(modal) {
   modal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
   if (activeModalTrigger) {
     activeModalTrigger.focus();
     activeModalTrigger = null;
   }
 }
+
+[modalNewMember, modalLogFlight].forEach((m) => {
+  m.addEventListener("click", (e) => {
+    if (e.target === m) {
+      closeModal(m);
+    }
+  });
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
@@ -709,6 +750,24 @@ function setFieldError(fieldId, errorSpanId, message) {
     span.textContent = message;
   }
 }
+
+[newMemberName, newMemberEmail, newMemberMiles].forEach((input) => {
+  input.addEventListener("input", () => {
+    input.classList.remove("is-invalid");
+    input.removeAttribute("aria-invalid");
+    const errSpan = input.parentElement.querySelector(".field-err");
+    if (errSpan) errSpan.textContent = "";
+  });
+});
+
+[flightNumberInput, flightOriginInput, flightDestInput, flightDistanceInput, flightClassInput].forEach((input) => {
+  input.addEventListener("input", () => {
+    input.classList.remove("is-invalid");
+    input.removeAttribute("aria-invalid");
+    const errSpan = input.parentElement.querySelector(".field-err");
+    if (errSpan) errSpan.textContent = "";
+  });
+});
 
 newMemberForm.addEventListener("submit", async (e) => {
   e.preventDefault();
