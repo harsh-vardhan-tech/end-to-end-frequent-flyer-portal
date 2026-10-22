@@ -44,11 +44,11 @@ Added real-time input event listeners that immediately remove `.is-invalid` and 
 
 ---
 
-### Prompt 6: Dark/Light Mode Theme Toggle & Network Simulator
-> "Add a theme toggle button in the navbar to switch between clean White mode and sleek Black dark mode. Store the preference in localStorage so it persists. Also add a network simulator button that toggles between Online, Slow 3G (with a 1.2s delay spinner), and Offline mode (blocking redemption mutations). Make sure the footer simply says 'Made by Harsh Vardhan' centered at the bottom."
+### Prompt 6: Dark/Light Mode Theme Toggle & Center Footer
+> "Add a theme toggle button in the navbar to switch between clean White mode and sleek Black dark mode. Store the preference in localStorage so it persists. Make sure the footer simply says 'Made by Harsh Vardhan' centered at the bottom."
 
 **Result:**
-Implemented CSS theme variables for `[data-theme="dark"]`, instant toggle with moon/sun icon, 3-state network simulator with user toast alerts, and centered clean footer.
+Implemented CSS theme variables for `[data-theme="dark"]`, instant toggle with moon/sun icon, and centered clean footer.
 
 ---
 

@@ -10,7 +10,7 @@ A web application designed for airline floor staff and operations to manage pass
 - **Automated Tier Progression:** Real-time calculation of member tier status based on qualifying flight miles with an interactive progress meter.
 - **Flight Mileage Crediting:** Automatic calculation of earned flight miles based on distance and cabin class multipliers (Economy 1.0x, Premium Economy 1.25x, Business 1.5x, First 2.0x).
 - **Miles Redemption Desk:** Catalog of airline rewards (Flight tickets, Cabin upgrades, Lounge passes, Excess baggage) with real-time affordability checks and unique voucher code generation.
-- **Network Latency Simulator:** Built-in network simulator supporting Online (Fast), Slow 3G (with loading spinner delay), and Offline mode (blocking remote mutations to prevent data inconsistency).
+- **Offline Resiliency & State Management:** Native browser connectivity detection and graceful feedback for flight logging and redemption mutations.
 - **Dark & Light Mode:** Corporate monochromatic design system with an instant theme toggle and local storage persistence.
 - **Form Validation & Security:** Strict field-level input validation with instant error clearance and HTML entity sanitization against XSS attacks.
 
